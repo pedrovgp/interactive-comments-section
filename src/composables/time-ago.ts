@@ -5,12 +5,11 @@ TimeAgo.addDefaultLocale(en)
 const timeAgo = new TimeAgo('en-US')
 
 export function useTimeAgo() {
+  function humanReadableTime(timestamp: number) {
+    return timeAgo.format(timestamp)
+  }
 
-    function humanReadableTime(timestamp: number) {
-        return timeAgo.format(timestamp)
-    }
-
-    return {
-        humanReadableTime,
-    }
+  return {
+    humanReadableTime,
+  }
 }
