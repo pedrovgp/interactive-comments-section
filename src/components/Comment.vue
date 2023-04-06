@@ -37,10 +37,7 @@
 
 <template>
   <va-card stripe stripe-color="success">
-    <va-card-title
-      >{{ props.user.username }} -
-      <!-- <div class="created-at">{{ humanReadableTime(createdAt) }}</div> -->
-    </va-card-title>
+    <va-card-title>{{ props.user.username }}: {{ humanReadableTime(createdAt) }} </va-card-title>
     <va-card-content>
       <Content :id="props.id" :content="props.content" />
       <Actions v-if="!isReplying" :id="props.id" :user="props.user" />

@@ -13,8 +13,8 @@
     <h1>Interactive Comments Section</h1>
   </header>
   <main>
-    <CommentList />
     <AddComment v-if="isDataLoaded" button-text="Enviar" />
+    <CommentList />
     <Modal />
   </main>
 </template>
