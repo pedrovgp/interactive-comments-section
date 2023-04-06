@@ -17,10 +17,10 @@
   <div class="comment-list">
     <Comment
       v-for="comment in replies(props.parentId as number)"
-      :key="comment.id"
       :id="comment.id"
+      :key="comment.id"
       :user="comment.user"
-      :createdAt="comment.createdAt"
+      :created-at="comment.createdAt"
       :score="comment.score"
       :content="comment.content"
     />

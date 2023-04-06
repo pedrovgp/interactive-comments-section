@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { toRefs } from 'vue'
   import AddComment from './components/AddComment.vue'
   import Modal from './components/Modal.vue'
   import CommentList from './components/CommentList.vue'
@@ -15,7 +14,7 @@
   </header>
   <main>
     <CommentList />
-    <AddComment v-if="isDataLoaded" buttonText="Send" />
+    <AddComment v-if="isDataLoaded" button-text="Enviar" />
     <Modal />
   </main>
 </template>

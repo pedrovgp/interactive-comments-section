@@ -6,7 +6,6 @@
   import AddComment from './AddComment.vue'
   import Score from './Score.vue'
   import CommentList from './CommentList.vue'
-  import Transitioner from './Transitioner.vue'
   import type { IUser } from '../interfaces/IUser'
   import { REPLYING, useState } from '../composables/state'
   import { useTimeAgo } from '../composables/time-ago'
@@ -27,6 +26,7 @@
   const { humanReadableTime } = useTimeAgo()
 
   const isCurrentUser: ComputedRef<boolean> = computed((): boolean => {
+    // TODO discover how to get current user from Django, to use here
     return isDataLoaded ? props.user.username === currentUser.value.username : false
   })
 
@@ -36,27 +36,22 @@
 </script>
 
 <template>
-  <article class="comment">
-    <div class="comment-container">
-      <Score :id="props.id" :score="props.score" />
-      <div class="comment-details">
-        <picture class="avatar avatar-small"
-          ><source type="image/webp" :srcset="props.user.image!.webp" />
-          <source type="image/png" :srcset="props.user.image!.png" />
-          <img :src="props.user.image!.png" :alt="`${props.user.username}'s avatar`" />
-        </picture>
-        <h2 class="username">
-          {{ props.user.username }}
-          <span v-if="isCurrentUser" class="self">you</span>
-        </h2>
-        <div class="created-at">{{ humanReadableTime(createdAt) }}</div>
-      </div>
-      <Actions :id="props.id" :user="props.user" />
+  <va-card stripe stripe-color="success">
+    <va-card-title
+      >{{ props.user.username }} -
+      <!-- <div class="created-at">{{ humanReadableTime(createdAt) }}</div> -->
+    </va-card-title>
+    <va-card-content>
       <Content :id="props.id" :content="props.content" />
-    </div>
-    <Transitioner :activator="isReplying">
-      <AddComment buttonText="Reply" :parentId="id" />
-    </Transitioner>
-    <CommentList v-if="hasReplies(props.id)" :parentId="props.id" />
-  </article>
+      <Actions v-if="!isReplying" :id="props.id" :user="props.user" />
+      <AddComment
+        v-if="isReplying"
+        button-text="Responder"
+        label="Nova resposta"
+        placeholder="Escreva sua resposta"
+        :parent-id="id"
+      />
+      <CommentList v-if="hasReplies(props.id)" :parent-id="props.id" />
+    </va-card-content>
+  </va-card>
 </template>

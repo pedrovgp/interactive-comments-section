@@ -31,13 +31,17 @@
 
 <template>
   <dialog class="modal" id="modal" ref="modal">
-    <div class="modal-header">Delete comment</div>
-    <div class="modal-body">
-      Are you sure your want to delete this comment? This will remove the comment and can't be undone.
-    </div>
-    <div class="modal-confirm">
-      <button class="button button-confirm button-confirm-cancel" @click="cancel">No, cancel</button>
-      <button class="button button-confirm button-confirm-delete" @click="remove">Yes, delete</button>
-    </div>
+    <va-card>
+      <va-card-title>Delete comment</va-card-title>
+      <va-card-content
+        ><p>
+          Are you sure your want to delete this comment? This will remove the comment and can't be undone.
+        </p></va-card-content
+      >
+      <va-card-actions>
+        <va-button color="warning" @click="cancel">Não, cancelar</va-button>
+        <va-button color="danger" @click="remove">Sim, apagar</va-button>
+      </va-card-actions>
+    </va-card>
   </dialog>
 </template>

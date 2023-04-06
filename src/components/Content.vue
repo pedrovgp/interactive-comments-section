@@ -31,8 +31,8 @@
 
 <template>
   <div v-if="isEditting" class="comment-content updating">
-    <textarea v-model="content" class="input" placeholder="Add a comment..."></textarea>
-    <button class="button button-content" @click="update()">Update</button>
+    <va-input v-model="content" type="textarea" class="mb-3" placeholder="Comentar..."></va-input>
+    <va-button class="mb-3" size="small" @click="update()">Update</va-button>
   </div>
   <div v-else class="comment-content" v-html="formattedContent"></div>
 </template>

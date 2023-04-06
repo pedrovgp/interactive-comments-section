@@ -30,10 +30,12 @@
 
 <template>
   <div class="comment-actions">
-    <template v-if="isCurrentUser">
-      <button class="comment-action comment-action-delete" @click="showModal">Delete</button>
-      <button class="comment-action comment-action-edit" @click="setActive(props.id, EDITTING)">Edit</button>
-    </template>
-    <button v-else class="comment-action comment-action-reply" @click="setActive(props.id, REPLYING)">Reply</button>
+    <va-card-actions v-if="isCurrentUser">
+      <va-button size="small" @click="setActive(props.id, EDITTING)">Editar</va-button>
+      <va-button size="small" color="danger" @click="showModal">Apagar</va-button>
+    </va-card-actions>
+    <va-card-actions v-else>
+      <va-button size="small" @click="setActive(props.id, REPLYING)">Responder</va-button>
+    </va-card-actions>
   </div>
 </template>
