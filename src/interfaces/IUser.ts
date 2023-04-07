@@ -1,6 +1,6 @@
 interface IUserImage {
-  png: string
-  webp: string
+  png?: string
+  webp?: string
 }
 
 export interface IUser {

@@ -4,8 +4,10 @@ import { ACTION_TYPE } from '../constants/ACTION_TYPE'
 import type { IComment } from '../interfaces/IComment'
 import type { IData } from '../interfaces/IData'
 import type { IUser } from '../interfaces/IUser'
+import createApi from '../../../../services/fam/fam'
 
 const STORAGE_KEY = 'interactive-comments-section-main' as const
+const CommentApi = createApi('comment')
 
 const state = reactive({
   actionType: null as string | null,
@@ -15,20 +17,63 @@ const state = reactive({
   isModalActive: false,
 })
 
-function fabricateCreatedAts(comments: IComment[]): IComment[] {
-  const now: number = Date.now()
-  return comments.map((comment: IComment): IComment => {
-    comment.createdAt = now - comment.createdAt
-    return comment
+function getUserId(user: IUser): number {
+  return 4
+}
+
+function mapInterfacesBackToFront(comments: any[]): IComment[] {
+  console.log('comments in map')
+  console.log(comments)
+  const mappedComments = comments.map((comment: any): IComment => {
+    return {
+      id: comment.id,
+      parentId: comment.parent_id,
+      content: comment.content,
+      createdAt: comment.created_at,
+      score: comment.score,
+      user: comment.owner,
+    }
+  })
+  console.log('mappedComments')
+  console.log(mappedComments)
+  return mappedComments
+}
+
+function mapInterfacesFrontToBack(comments: IComment[]): any[] {
+  return comments.map((comment: IComment): any => {
+    return {
+      id: comment.id,
+      parent_id: comment.parentId,
+      content: comment.content,
+      created_at: null,
+      score: comment.score,
+      owner: null,
+    }
   })
 }
 
-async function fetchData() {
-  const data = await import('../assets/data.json')
+async function fetchData(params: any) {
+  CommentApi.getAll(params)
+    .then((response) => {
+      state.comments = mapInterfacesBackToFront(response.data)
+    })
+    .catch((error) => {
+      state.comments = []
+      console.log(error)
+    })
+
+  console.log('state.comments')
+  console.log(state.comments)
+
   const alteredData = {
-    currentUser: data.currentUser,
-    comments: [...fabricateCreatedAts(data.comments)],
+    currentUser: {
+      image: {},
+      username: 'pv',
+    },
+    comments: state.comments,
   }
+  console.log('alteredData')
+  console.log(alteredData)
   return alteredData
 }
 
@@ -50,33 +95,35 @@ export const DELETING = ACTION_TYPE.DELETING
 export const EDITTING = ACTION_TYPE.EDITTING
 export const REPLYING = ACTION_TYPE.REPLYING
 export function useState() {
-  const commentsByTimestamp: ComputedRef<IComment[]> = computed((): IComment[] => {
-    return [...state.comments].sort((x: IComment, y: IComment): number => x.createdAt - y.createdAt)
-  })
-
   const isDataLoaded: ComputedRef<boolean> = computed((): boolean => {
-    return Object.keys(state.currentUser).length > 0
+    return true //state.comments.length > 0
   })
 
   function addComment(content: string, parentId: number | null = null): void {
-    const id: number = nextId()
     const comment: IComment = {
-      id,
+      id: null,
       parentId,
       content,
-      createdAt: Date.now(),
+      createdAt: null,
       score: 0,
       user: { ...state.currentUser },
     }
-    state.comments.push(comment)
-    saveData()
+    console.log('Creating comment')
+    console.log(mapInterfacesFrontToBack([comment])[0])
+    CommentApi.create(mapInterfacesFrontToBack([comment])[0]).catch((error) => {
+      console.log(error)
+    })
+    loadData()
   }
 
   function changeScore(id: number, amount: number): void {
     const comment: IComment = state.comments.find((comment: IComment): boolean => comment.id === id)!
     const newScore: number = comment.score + amount
     comment.score = newScore >= 0 ? newScore : 0
-    saveData()
+    CommentApi.update({ id: comment.id.toString(), data: { score: newScore } }).catch((error) => {
+      console.log(error)
+    })
+    loadData()
   }
 
   function deleteComment(id: number): void {
@@ -84,14 +131,17 @@ export function useState() {
     state.comments = state.comments.filter((comment: IComment): boolean => {
       return comment.id !== id && !parentIds.has(comment.parentId as number)
     })
-    saveData()
+    CommentApi.delete(id).catch((error) => {
+      console.log(error)
+    })
+    loadData()
   }
 
   async function loadData(): Promise<void> {
-    const dataJson: string | null = localStorage.getItem(STORAGE_KEY)
-    let data: IData | undefined = dataJson !== null ? JSON.parse(dataJson) : dataJson
-    if (!data) data = await fetchData()
+    const data: IData | undefined = await fetchData({})
     state.currentUser = data.currentUser
+    console.log('Loading data')
+    console.log(data)
     state.comments = data.comments
   }
 
@@ -99,23 +149,8 @@ export function useState() {
     return state.comments.some((comment: IComment): boolean => comment.parentId === id)
   }
 
-  function nextId(): number {
-    const maxId: number = state.comments.reduce((maxId: number, comment: IComment): number => {
-      return maxId > comment.id ? maxId : comment.id
-    }, 0)
-    return maxId + 1
-  }
-
   function replies(id: number): IComment[] {
-    return commentsByTimestamp.value.filter((comment: IComment): boolean => comment.parentId === id)
-  }
-
-  function saveData() {
-    const data: IData = {
-      currentUser: state.currentUser,
-      comments: state.comments,
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    return state.comments.filter((comment: IComment): boolean => comment?.parentId === id)
   }
 
   function setActive(id: number | null, activityType: string | null) {
@@ -134,12 +169,14 @@ export function useState() {
       }
       return comment
     })
-    saveData()
+    CommentApi.update({ id: id.toString(), data: { content: content } }).catch((error) => {
+      console.log(error)
+    })
+    loadData
   }
 
   return {
     state: readonly(state),
-    commentsByTimestamp,
     isDataLoaded,
 
     addComment,
@@ -147,9 +184,7 @@ export function useState() {
     deleteComment,
     loadData,
     hasReplies,
-    nextId,
     replies,
-    saveData,
     setActive,
     toggleModal,
     updateComment,

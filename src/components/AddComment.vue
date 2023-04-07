@@ -27,7 +27,7 @@
 
 <template>
   <div class="add-comment">
-    <va-card stripe stripe-color="blue">
+    <va-card stripe stripe-color="primary">
       <va-card-content>
         <va-input
           v-model="content"

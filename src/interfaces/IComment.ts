@@ -1,10 +1,10 @@
 import type { IUser } from './IUser'
 
 export interface IComment {
-  id: number
+  id: number | null
   parentId: number | null
   content: string
-  createdAt: number
+  createdAt: string | null
   score: number
   user: IUser
 }

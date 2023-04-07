@@ -8,12 +8,11 @@
   import CommentList from './CommentList.vue'
   import type { IUser } from '../interfaces/IUser'
   import { REPLYING, useState } from '../composables/state'
-  import { useTimeAgo } from '../composables/time-ago'
 
   const props = defineProps<{
     id: number
     user: IUser
-    createdAt: number
+    createdAt: string | null
     score: number
     content: string
   }>()
@@ -22,8 +21,6 @@
   const { activeId, actionType, currentUser } = toRefs(state)
 
   const content: Ref<string> = ref(props.content)
-
-  const { humanReadableTime } = useTimeAgo()
 
   const isCurrentUser: ComputedRef<boolean> = computed((): boolean => {
     // TODO discover how to get current user from Django, to use here
@@ -37,7 +34,7 @@
 
 <template>
   <va-card stripe stripe-color="success">
-    <va-card-title>{{ props.user.username }}: {{ humanReadableTime(createdAt) }} </va-card-title>
+    <va-card-title>{{ props.user.username }}: {{ createdAt }} </va-card-title>
     <va-card-content>
       <Content :id="props.id" :content="props.content" />
       <Actions v-if="!isReplying" :id="props.id" :user="props.user" />
