@@ -2,12 +2,12 @@ import { computed, reactive, readonly } from 'vue'
 import type { ComputedRef } from 'vue'
 import { ACTION_TYPE } from '../constants/ACTION_TYPE'
 import type { IComment } from '../interfaces/IComment'
-import type { IData } from '../interfaces/IData'
 import type { IUser } from '../interfaces/IUser'
 import createApi from '../../../../services/fam/fam'
 
 const STORAGE_KEY = 'interactive-comments-section-main' as const
 const CommentApi = createApi('comment')
+const CurrentUserApi = createApi('user_current')
 
 const state = reactive({
   actionType: null as string | null,
@@ -17,10 +17,6 @@ const state = reactive({
   isModalActive: false,
   backendComments: [],
 })
-
-function getUserId(user: IUser): number {
-  return 4
-}
 
 function mapInterfacesBackToFront(comments: any[]): IComment[] {
   const mappedComments = comments.map((comment: any): IComment => {
@@ -59,19 +55,16 @@ async function fetchData(params: any) {
       state.backendComments = []
       console.log(error)
     })
-  console.log('Fetching data, before altered data:')
-  console.log(state)
 
-  const alteredData = {
-    currentUser: {
-      image: {},
-      username: 'pv',
-    },
-    comments: state.comments,
-  }
-  console.log('Fetching data, altered data:')
-  console.log(state)
-  return alteredData
+  CurrentUserApi.getAll({})
+    .then((response) => {
+      state.currentUser = response.data
+      console.log(`Current user: ${state.currentUser.username}`)
+    })
+    .catch((error) => {
+      state.currentUser = {}
+      console.log(error)
+    })
 }
 
 function findReplies(id: number) {
@@ -145,12 +138,8 @@ export function useState() {
   }
 
   async function loadData(): Promise<void> {
-    // When App starts, load data from from the backend to
-    const data: IData | undefined = await fetchData({})
-    console.log('Data loaded')
-    state.currentUser = data.currentUser
-    state.comments = data.comments
-    console.log(state)
+    // When App starts, load data from from the backend to state
+    await fetchData({})
   }
 
   function hasReplies(id: number): boolean {

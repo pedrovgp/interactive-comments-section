@@ -7,4 +7,5 @@ export interface IComment {
   createdAt: string | null
   score: number
   user: IUser
+  [key: string]: any
 }

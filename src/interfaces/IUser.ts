@@ -1,9 +1,7 @@
-interface IUserImage {
-  png?: string
-  webp?: string
-}
-
 export interface IUser {
-  image?: IUserImage
+  id?: number | string | null
+  image?: string | null
   username?: string
+  email?: string
+  [key: string]: any
 }
