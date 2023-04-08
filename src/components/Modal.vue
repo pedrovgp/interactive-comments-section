@@ -30,7 +30,7 @@
 </script>
 
 <template>
-  <dialog class="modal" id="modal" ref="modal">
+  <dialog id="modal" ref="modal" class="modal">
     <va-card>
       <va-card-title>Delete comment</va-card-title>
       <va-card-content

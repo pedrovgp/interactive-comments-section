@@ -10,7 +10,7 @@
       label?: string
       placeholder?: string
     }>(),
-    { parentId: null, label: 'Nova mensagem', placeholder: 'Escreva seu comentário ou dúvida' },
+    { parentId: 1, label: 'Nova mensagem', placeholder: 'Escreva seu comentário ou dúvida' },
   )
 
   const { state, addComment, setActive } = useState()
