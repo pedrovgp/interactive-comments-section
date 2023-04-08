@@ -15,6 +15,7 @@ const state = reactive({
   comments: [] as IComment[],
   currentUser: {} as IUser,
   isModalActive: false,
+  backendComments: [],
 })
 
 function getUserId(user: IUser): number {
@@ -22,8 +23,6 @@ function getUserId(user: IUser): number {
 }
 
 function mapInterfacesBackToFront(comments: any[]): IComment[] {
-  console.log('comments in map')
-  console.log(comments)
   const mappedComments = comments.map((comment: any): IComment => {
     return {
       id: comment.id,
@@ -34,8 +33,6 @@ function mapInterfacesBackToFront(comments: any[]): IComment[] {
       user: comment.owner,
     }
   })
-  console.log('mappedComments')
-  console.log(mappedComments)
   return mappedComments
 }
 
@@ -55,15 +52,15 @@ function mapInterfacesFrontToBack(comments: IComment[]): any[] {
 async function fetchData(params: any) {
   CommentApi.getAll(params)
     .then((response) => {
+      state.backendComments = mapInterfacesBackToFront(response.data)
       state.comments = mapInterfacesBackToFront(response.data)
     })
     .catch((error) => {
-      state.comments = []
+      state.backendComments = []
       console.log(error)
     })
-
-  console.log('state.comments')
-  console.log(state.comments)
+  console.log('Fetching data, before altered data:')
+  console.log(state)
 
   const alteredData = {
     currentUser: {
@@ -72,8 +69,8 @@ async function fetchData(params: any) {
     },
     comments: state.comments,
   }
-  console.log('alteredData')
-  console.log(alteredData)
+  console.log('Fetching data, altered data:')
+  console.log(state)
   return alteredData
 }
 
@@ -96,7 +93,7 @@ export const EDITTING = ACTION_TYPE.EDITTING
 export const REPLYING = ACTION_TYPE.REPLYING
 export function useState() {
   const isDataLoaded: ComputedRef<boolean> = computed((): boolean => {
-    return true //state.comments.length > 0
+    return Object.keys(state.currentUser).length > 0
   })
 
   function addComment(content: string, parentId: number | null = null): void {
@@ -110,39 +107,50 @@ export function useState() {
     }
     console.log('Creating comment')
     console.log(mapInterfacesFrontToBack([comment])[0])
-    CommentApi.create(mapInterfacesFrontToBack([comment])[0]).catch((error) => {
-      console.log(error)
-    })
-    loadData()
+    CommentApi.create(mapInterfacesFrontToBack([comment])[0])
+      .then((response) => {
+        state.comments.unshift(mapInterfacesBackToFront([response.data])[0])
+        saveData()
+      })
+      .catch((error) => {
+        console.log(error)
+      })
   }
 
   function changeScore(id: number, amount: number): void {
     const comment: IComment = state.comments.find((comment: IComment): boolean => comment.id === id)!
     const newScore: number = comment.score + amount
-    comment.score = newScore >= 0 ? newScore : 0
-    CommentApi.update({ id: comment.id.toString(), data: { score: newScore } }).catch((error) => {
-      console.log(error)
-    })
-    loadData()
+    CommentApi.update({ id: comment.id.toString(), data: { score: newScore } })
+      .then((response) => {
+        comment.score = newScore >= 0 ? newScore : 0
+        saveData()
+      })
+      .catch((error) => {
+        console.log(error)
+      })
   }
 
   function deleteComment(id: number): void {
     const parentIds: Set<number> = new Set(findReplies(id))
-    state.comments = state.comments.filter((comment: IComment): boolean => {
-      return comment.id !== id && !parentIds.has(comment.parentId as number)
-    })
-    CommentApi.delete(id).catch((error) => {
-      console.log(error)
-    })
-    loadData()
+    CommentApi.delete(id)
+      .then((response) => {
+        state.comments = state.comments.filter((comment: IComment): boolean => {
+          return comment.id !== id && !parentIds.has(comment.parentId as number)
+        })
+        saveData()
+      })
+      .catch((error) => {
+        console.log(error)
+      })
   }
 
   async function loadData(): Promise<void> {
+    // When App starts, load data from from the backend to
     const data: IData | undefined = await fetchData({})
+    console.log('Data loaded')
     state.currentUser = data.currentUser
-    console.log('Loading data')
-    console.log(data)
     state.comments = data.comments
+    console.log(state)
   }
 
   function hasReplies(id: number): boolean {
@@ -151,6 +159,14 @@ export function useState() {
 
   function replies(id: number): IComment[] {
     return state.comments.filter((comment: IComment): boolean => comment?.parentId === id)
+  }
+
+  function saveData() {
+    // const data: IData = {
+    //   currentUser: state.currentUser,
+    //   comments: state.comments,
+    // }
+    // localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
 
   function setActive(id: number | null, activityType: string | null) {
@@ -163,16 +179,19 @@ export function useState() {
   }
 
   function updateComment(content: string, id: number) {
-    state.comments = state.comments.map((comment: IComment): IComment => {
-      if (comment.id === id) {
-        comment.content = content
-      }
-      return comment
-    })
-    CommentApi.update({ id: id.toString(), data: { content: content } }).catch((error) => {
-      console.log(error)
-    })
-    loadData
+    CommentApi.update({ id: id.toString(), data: { content: content } })
+      .then((response) => {
+        state.comments = state.comments.map((comment: IComment): IComment => {
+          if (comment.id === id) {
+            comment.content = content
+          }
+          return comment
+        })
+        saveData()
+      })
+      .catch((error) => {
+        console.log(error)
+      })
   }
 
   return {
@@ -185,6 +204,7 @@ export function useState() {
     loadData,
     hasReplies,
     replies,
+    saveData,
     setActive,
     toggleModal,
     updateComment,
