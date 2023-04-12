@@ -3,9 +3,8 @@ import type { ComputedRef } from 'vue'
 import { ACTION_TYPE } from '../constants/ACTION_TYPE'
 import type { IComment } from '../interfaces/IComment'
 import type { IUser } from '../interfaces/IUser'
-import createApi from '../../../../services/fam/fam'
+import { createApi } from '../../../../services/fam/fam'
 
-const STORAGE_KEY = 'interactive-comments-section-main' as const
 const CommentApi = createApi('comment')
 const CurrentUserApi = createApi('user_current')
 
@@ -48,17 +47,16 @@ function mapInterfacesFrontToBack(comments: IComment[]): any[] {
 async function fetchData(params: any) {
   CommentApi.getAll(params)
     .then((response) => {
-      state.backendComments = mapInterfacesBackToFront(response.data)
       state.comments = mapInterfacesBackToFront(response.data)
     })
     .catch((error) => {
-      state.backendComments = []
+      state.comments = []
       console.log(error)
     })
 
   CurrentUserApi.getAll({})
     .then((response) => {
-      state.currentUser = response.data
+      state.currentUser = response.data[0]
       console.log(`Current user: ${state.currentUser.username}`)
     })
     .catch((error) => {
@@ -67,12 +65,12 @@ async function fetchData(params: any) {
     })
 }
 
-function findReplies(id: number) {
+function findReplies(id: number | null) {
   const parentIds: number[] = []
   const filteredComments: IComment[] = state.comments.filter((comment: IComment) => {
     return comment.parentId === id
   })
-  if (filteredComments.length) {
+  if (filteredComments.length && id) {
     parentIds.push(id)
     filteredComments.forEach((comment: IComment): void => {
       parentIds.concat(findReplies(comment.id))
@@ -99,13 +97,16 @@ export function useState() {
       user: { ...state.currentUser },
     }
     console.log('Creating comment')
-    console.log(mapInterfacesFrontToBack([comment])[0])
-    CommentApi.create(mapInterfacesFrontToBack([comment])[0])
+    const newComment = mapInterfacesFrontToBack([comment])[0]
+    console.log(newComment)
+    CommentApi.create(newComment)
       .then((response) => {
+        console.log('Created comment')
         state.comments.unshift(mapInterfacesBackToFront([response.data])[0])
-        saveData()
+        console.log(mapInterfacesBackToFront([response.data])[0])
       })
       .catch((error) => {
+        console.log('addComment failed')
         console.log(error)
       })
   }
@@ -113,10 +114,9 @@ export function useState() {
   function changeScore(id: number, amount: number): void {
     const comment: IComment = state.comments.find((comment: IComment): boolean => comment.id === id)!
     const newScore: number = comment.score + amount
-    CommentApi.update({ id: comment.id.toString(), data: { score: newScore } })
+    CommentApi.update({ id: id.toString(), data: { score: newScore } })
       .then((response) => {
         comment.score = newScore >= 0 ? newScore : 0
-        saveData()
       })
       .catch((error) => {
         console.log(error)
@@ -130,7 +130,6 @@ export function useState() {
         state.comments = state.comments.filter((comment: IComment): boolean => {
           return comment.id !== id && !parentIds.has(comment.parentId as number)
         })
-        saveData()
       })
       .catch((error) => {
         console.log(error)
