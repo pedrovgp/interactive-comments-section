@@ -1,10 +1,9 @@
 <script setup lang="ts">
-  import { computed, ref, toRefs } from 'vue'
-  import type { ComputedRef, Ref } from 'vue'
+  import { computed, toRefs } from 'vue'
+  import type { ComputedRef } from 'vue'
   import Actions from './Actions.vue'
   import Content from './Content.vue'
   import AddComment from './AddComment.vue'
-  import Score from './Score.vue'
   import CommentList from './CommentList.vue'
   import type { IUser } from '../interfaces/IUser'
   import { REPLYING, useState } from '../composables/state'
@@ -17,15 +16,8 @@
     content: string
   }>()
 
-  const { state, isDataLoaded, hasReplies } = useState()
-  const { activeId, actionType, currentUser } = toRefs(state)
-
-  const content: Ref<string> = ref(props.content)
-
-  const isCurrentUser: ComputedRef<boolean> = computed((): boolean => {
-    // TODO discover how to get current user from Django, to use here
-    return isDataLoaded ? props.user.username === currentUser.value.username : false
-  })
+  const { state, hasReplies } = useState()
+  const { activeId, actionType } = toRefs(state)
 
   function formatDate(date: string | null) {
     if (!date) {

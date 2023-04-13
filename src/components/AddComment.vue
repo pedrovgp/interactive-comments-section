@@ -1,20 +1,19 @@
 <script setup lang="ts">
-  import { computed, ref, toRefs } from 'vue'
-  import type { ComputedRef, Ref } from 'vue'
-  import { REPLYING, useState } from '../composables/state'
+  import { ref, toRefs } from 'vue'
+  import type { Ref } from 'vue'
+  import { useState } from '../composables/state'
 
   const props = withDefaults(
     defineProps<{
       buttonText: string
-      parentId?: number
+      parentId?: number | null
       label?: string
       placeholder?: string
     }>(),
     { parentId: null, label: 'Nova mensagem', placeholder: 'Escreva seu comentário ou dúvida' },
   )
 
-  const { state, addComment, setActive } = useState()
-  const { activeId, actionType, currentUser } = toRefs(state)
+  const { addComment, setActive } = useState()
 
   const content: Ref<string> = ref('')
 
