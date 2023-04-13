@@ -11,13 +11,7 @@
     comment: IComment
   }>()
 
-  const {
-    state,
-
-    isDataLoaded,
-    setActive,
-    toggleModal,
-  } = useState()
+  const { state, changeStatus, isDataLoaded, setActive, toggleModal } = useState()
   const { currentUser } = toRefs(state)
 
   const isCurrentUser: ComputedRef<boolean> = computed((): boolean => {
@@ -29,9 +23,7 @@
     toggleModal(true)
   }
 
-  function changeStatus(): void {
-    console.log('changeStatus')
-  }
+  const nextStatus = props.comment.status != null ? props.comment.status + 1 : 0
 </script>
 
 <template>
@@ -39,9 +31,15 @@
     <va-card-actions v-if="isCurrentUser">
       <va-button size="small" @click="setActive(props.id, EDITTING)">Editar</va-button>
       <va-button size="small" color="danger" @click="showModal">Apagar</va-button>
-      <va-button v-if="props.comment.parentId == null" size="small" color="primary" @click="changeStatus()">{{
-        props.comment.status + 1 == STATUS_CHOICES.NEW + 1 ? 'Marcar respondido' : 'Arquivar'
-      }}</va-button>
+      <va-button
+        v-if="
+          props.comment.id != null && props.comment.parentId == null && props.comment.status != STATUS_CHOICES.ARCHIVED
+        "
+        size="small"
+        color="primary"
+        @click="changeStatus(props.comment.id, nextStatus)"
+        >{{ props.comment.status == STATUS_CHOICES.NEW ? 'Marcar respondido' : 'Arquivar' }}</va-button
+      >
     </va-card-actions>
     <va-card-actions v-else>
       <va-button size="small" @click="setActive(props.id, REPLYING)">Responder</va-button>

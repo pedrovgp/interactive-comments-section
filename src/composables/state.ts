@@ -145,6 +145,19 @@ export function useState() {
       })
   }
 
+  function changeStatus(id: number, newStatus: number): void {
+    const parentIds: Set<number> = new Set(findReplies(id))
+    CommentApi.update({ id: id.toString(), data: { status: newStatus } })
+      .then((response) => {
+        state.comments = state.comments.filter((comment: IComment): boolean => {
+          return comment.id !== id && !parentIds.has(comment.parentId as number)
+        })
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
   async function loadData(): Promise<void> {
     // When App starts, load data from from the backend to state
     await fetchData({})
@@ -198,6 +211,7 @@ export function useState() {
     addComment,
     changeScore,
     deleteComment,
+    changeStatus,
     loadData,
     hasReplies,
     replies,
