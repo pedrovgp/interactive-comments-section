@@ -160,7 +160,7 @@ export function useState() {
 
   async function loadData(): Promise<void> {
     // When App starts, load data from from the backend to state
-    await fetchData({})
+    await fetchData({ status: STATUS_CHOICES.NEW })
   }
 
   function hasReplies(id: number): boolean {
