@@ -20,9 +20,7 @@
       :id="comment.id"
       :key="comment.id"
       :user="comment.user"
-      :created-at="comment.createdAt"
-      :score="comment.score"
-      :content="comment.content"
+      :comment="comment"
     />
   </div>
 </template>

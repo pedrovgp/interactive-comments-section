@@ -6,14 +6,13 @@
   import AddComment from './AddComment.vue'
   import CommentList from './CommentList.vue'
   import type { IUser } from '../interfaces/IUser'
+  import type { IComment } from '../interfaces/IComment'
   import { REPLYING, useState } from '../composables/state'
 
   const props = defineProps<{
     id: number
     user: IUser
-    createdAt: string | null
-    score: number
-    content: string
+    comment: IComment
   }>()
 
   const { state, hasReplies } = useState()
@@ -42,10 +41,10 @@
 
 <template>
   <va-card stripe stripe-color="success">
-    <va-card-title>{{ props.user.username }}: {{ formatDate(createdAt) }} </va-card-title>
+    <va-card-title>{{ props.user.username }}: {{ formatDate(props.comment.createdAt) }} </va-card-title>
     <va-card-content>
-      <Content :id="props.id" :content="props.content" />
-      <Actions v-if="!isReplying" :id="props.id" :user="props.user" />
+      <Content :id="props.id" :content="props.comment.content" />
+      <Actions v-if="!isReplying" :id="props.id" :user="props.user" :comment="props.comment" />
       <AddComment
         v-if="isReplying"
         button-text="Responder"

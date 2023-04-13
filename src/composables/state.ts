@@ -26,6 +26,7 @@ function mapInterfacesBackToFront(comments: any[]): IComment[] {
       createdAt: comment.created_at,
       score: comment.score,
       user: comment.owner,
+      status: comment.status,
     }
   })
   return mappedComments
@@ -40,6 +41,7 @@ function mapInterfacesFrontToBack(comments: IComment[]): any[] {
       created_at: null,
       score: comment.score,
       owner: null,
+      status: comment.status,
     }
   })
 }
@@ -82,6 +84,12 @@ function findReplies(id: number | null) {
 export const DELETING = ACTION_TYPE.DELETING
 export const EDITTING = ACTION_TYPE.EDITTING
 export const REPLYING = ACTION_TYPE.REPLYING
+// Keep the below in sync with the backend config
+export const STATUS_CHOICES = {
+  NEW: 0,
+  REPLIED: 1,
+  ARCHIVED: 2,
+}
 export function useState() {
   const isDataLoaded: ComputedRef<boolean> = computed((): boolean => {
     return Object.keys(state.currentUser).length > 0
@@ -94,6 +102,7 @@ export function useState() {
       content,
       createdAt: null,
       score: 0,
+      status: null,
       user: { ...state.currentUser },
     }
     console.log('Creating comment')
