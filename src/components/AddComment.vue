@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, toRefs } from 'vue'
+  import { ref } from 'vue'
   import type { Ref } from 'vue'
   import { useState } from '../composables/state'
 
